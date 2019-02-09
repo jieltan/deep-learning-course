@@ -22,7 +22,7 @@ def fc_forward(x, w, b):
     ###########################################################################
     # TODO: Implement the forward pass. Store the result in out.              #
     ###########################################################################
-    pass
+    out = w.T @ x + b
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -73,7 +73,8 @@ def relu_forward(x):
     ###########################################################################
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
-    pass
+    out = x
+	out[out < 0] = 0
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -168,7 +169,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #                                                                     #
         # Note that though you should be keeping track of the running         #
         # variance, you should normalize the data based on the standard       #
-        # deviation (square root of variance) instead!                        # 
+        # deviation (square root of variance) instead!                        #
         # Referencing the original paper (https://arxiv.org/abs/1502.03167)   #
         # might prove to be helpful.                                          #
         #######################################################################
@@ -314,8 +315,8 @@ def conv_forward(x, w):
     """
     The input consists of N data points, each with C channels, height H and
     width W. We convolve each input with F different filters, where each filter
-    spans all C channels and has height HH and width WW. Assume that stride=1 
-    and there is no padding. You can ignore the bias term in your 
+    spans all C channels and has height HH and width WW. Assume that stride=1
+    and there is no padding. You can ignore the bias term in your
     implementation.
 
     Input:
@@ -373,7 +374,7 @@ def max_pool_forward(x, pool_param):
       - 'pool_width': The width of each pooling region
       - 'stride': The distance between adjacent pooling regions
 
-    No padding is necessary here. Output size is given by 
+    No padding is necessary here. Output size is given by
 
     Returns a tuple of:
     - out: Output data, of shape (N, C, H', W') where H' and W' are given by
@@ -431,7 +432,7 @@ def svm_loss(x, y):
 
 def logistic_loss(x, y):
   """
-  Computes the loss and gradient for binary classification with logistic 
+  Computes the loss and gradient for binary classification with logistic
   regression.
   Inputs:
   - x: Input data, of shape (N,) where x[i] is the logit for the ith input.
