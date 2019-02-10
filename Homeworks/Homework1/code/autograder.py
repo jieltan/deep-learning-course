@@ -72,7 +72,7 @@ output_dim = 3
 input_size = num_inputs * np.prod(input_shape)
 weight_size = output_dim * np.prod(input_shape)
 
-x = np.linspace(-0.1, 0.5, num=input_size).reshape(num_inputs, *input_shape)
+x = np.linspace(-0.1, 0.5, num=input_size).reshape(num_inputs, np.prod(input_shape))
 w = np.linspace(-0.2, 0.3, num=weight_size).reshape(np.prod(input_shape), output_dim)
 b = np.linspace(-0.3, 0.1, num=output_dim)
 
@@ -88,7 +88,7 @@ print('difference: ', rel_error(out, correct_out))
 
 #FC layer: backward
 np.random.seed(498)
-x = np.random.randn(10, 2, 3)
+x = np.random.randn(10, 2, 3).reshape(10,6)
 w = np.random.randn(6, 5)
 b = np.random.randn(5)
 dout = np.random.randn(10, 5)
@@ -127,7 +127,6 @@ x = np.random.randn(10, 10)
 dout = np.random.randn(*x.shape)
 
 dx_num = eval_numerical_gradient_array(lambda x: relu_forward(x)[0], x, dout)
-
 _, cache = relu_forward(x)
 dx = relu_backward(dout, cache)
 # The error should be around 3e-12
@@ -139,20 +138,20 @@ print('dx error: ', rel_error(dx_num, dx))
 
 
 # Softmax loss
-np.random.seed(498)
-num_classes, num_inputs = 10, 50
-x = 0.001 * np.random.randn(num_inputs, num_classes)
-y = np.random.randint(num_classes, size=num_inputs)
-
-
-
-dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
-loss, dx = softmax_loss(x, y)
-
-# Test softmax_loss function. Loss should be 2.3 and dx error should be 1e-8
-print('\nTesting softmax_loss:')
-print('loss: ', loss)
-print('dx error: ', rel_error(dx_num, dx))
+#np.random.seed(498)
+#num_classes, num_inputs = 10, 50
+#x = 0.001 * np.random.randn(num_inputs, num_classes)
+#y = np.random.randint(num_classes, size=num_inputs)
+#
+#
+#
+#dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
+#loss, dx = softmax_loss(x, y)
+#
+## Test softmax_loss function. Loss should be 2.3 and dx error should be 1e-8
+#print('\nTesting softmax_loss:')
+#print('loss: ', loss)
+#print('dx error: ', rel_error(dx_num, dx))
 
 
 
@@ -186,6 +185,7 @@ for ite in range(num_inputs):
         y[ite] = -1
 
 dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
+#print(dx_num)
 loss, dx = svm_loss(x, y)
 
 # Test svm_loss function. Loss should be 1.000 and dx error should be 3e-10

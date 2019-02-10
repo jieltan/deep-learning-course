@@ -5,7 +5,7 @@ from layers import *
 class LogisticClassifier(object):
   """
   A logistic regression model with optional hidden layers.
-  
+
   Note that this class does not implement gradient descent; instead, it
   will interact with a separate Solver object that is responsible for running
   optimization.
@@ -13,7 +13,7 @@ class LogisticClassifier(object):
   The learnable parameters of the model are stored in the dictionary
   self.params that maps parameter names to numpy arrays.
   """
-  
+
   def __init__(self, input_dim=100, hidden_dim=None, weight_scale=1e-3, reg=0.0):
     """
     Initialize a new network.
@@ -27,7 +27,7 @@ class LogisticClassifier(object):
     """
     self.params = {}
     self.reg = reg
-    
+
     ############################################################################
     # TODO: Initialize the weights and biases of the model. Weights            #
     # should be initialized from a Gaussian with standard deviation equal to   #
@@ -36,7 +36,16 @@ class LogisticClassifier(object):
     # weights and biases using the keys 'W1' and 'b1' and second layer weights #
     # and biases (if any) using the keys 'W2' and 'b2'.                        #
     ############################################################################
-    pass
+    self.params['b1'] = np.zeros(1)
+    self.hidden = hidden_dim != None
+    if hidden_dim != None:
+        self.params['b1'] = np.zeros(hidden_dim)
+        self.params['b2'] = np.zeros(1)
+        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
+        self.params['W2'] = np.random.normal(0, weight_scale, (hidden_dim, 1))
+    else:
+        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, 1))
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -49,23 +58,29 @@ class LogisticClassifier(object):
     Inputs:
     - X: Array of input data of shape (N, D)
     - y: Array of labels, of shape (N,). y[i] gives the label for X[i].
-
+i
     Returns:
     If y is None, then run a test-time forward pass of the model and return:
     - scores: Array of shape (N,) where scores[i] represents the logit for X[i]
-    
+
     If y is not None, then run a training-time forward and backward pass and
     return a tuple of:
     - loss: Scalar value giving the loss
     - grads: Dictionary with the same keys as self.params, mapping parameter
       names to gradients of the loss with respect to those parameters.
-    """  
+    """
     scores = None
     ############################################################################
     # TODO: Implement the forward pass for the model, computing the            #
     # scores for X and storing them in the scores variable.                    #
     ############################################################################
-    pass
+    layer1, cache1 = fc_forward(X, self.params['W1'], self.params['b1'])
+    if self.hidden == 1:
+        layer1, cache1 = relu_forward(layer1)
+        scores, cache = fc_forward(layer1, self.params['W2'], self.params['b2'])
+    else:
+        scores = layer1
+        cache  = cache1
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -73,7 +88,7 @@ class LogisticClassifier(object):
     # If y is None then we are in test mode so just return scores
     if y is None:
       return scores
-    
+
     loss, grads = 0, {}
     ############################################################################
     # TODO: Implement the backward pass for the model. Store the loss          #
@@ -82,7 +97,14 @@ class LogisticClassifier(object):
     # Don't forget to add L2 regularization.                                   #
     #                                                                          #
     ############################################################################
-    pass
+    if self.hidden:
+        loss, grad1 = logistic_loss(scores, y)
+        loss1, grad2 = relu_backward(grad1, cache)
+    else:
+        loss, grad1 = logistic_loss(scores, y)
+        #print(loss)
+        _ ,grads['W1'],grads['b1'] = fc_backward(grad1, cache)
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################

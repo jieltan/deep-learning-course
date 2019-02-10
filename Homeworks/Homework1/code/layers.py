@@ -22,7 +22,11 @@ def fc_forward(x, w, b):
     ###########################################################################
     # TODO: Implement the forward pass. Store the result in out.              #
     ###########################################################################
-    out = w.T @ x + b
+    #print(x.shape)
+    #print(w.shape)
+    #print(b.shape)
+    out = x @ w + b
+    #print(out.shape)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -51,7 +55,11 @@ def fc_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
-    pass
+    dx = dout @ w.T
+    #print(dout.shape)
+    dw = x.T @ dout
+    db = np.sum(dout, axis=0)
+    #print(dx.shape, ' ', dw.shape, ' ', db.shape)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -73,8 +81,7 @@ def relu_forward(x):
     ###########################################################################
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
-    out = x
-	out[out < 0] = 0
+    out = np.maximum(0,x)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -97,7 +104,7 @@ def relu_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
-    pass
+    dx = dout * (x > 0)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -426,6 +433,13 @@ def svm_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+  y = y.reshape(y.shape[0], 1)
+  hinge = 1 - y*x
+  #print(hinge.shape)
+  loss_vec = np.maximum(0, hinge)
+  loss = np.mean(loss_vec)
+  dx = 1/x.shape[0] *(-y * (loss_vec > 0))
+  #print(dx)
 
   return loss, dx
 
@@ -441,6 +455,11 @@ def logistic_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+  n = x.shape[0]
+  s = 1/(1 + np.exp(-x))
+  y = y.reshape(y.shape[0],1)
+  loss = np.mean(-y * np.log(s) - (1 - y) * np.log(1 - s))
+  dx = 1/n * (s - y)
 
   return loss, dx
 
@@ -457,5 +476,7 @@ def softmax_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+  loss = np.mean(np.exp(x)/np.sum(np.exp(x)))
+  dx = 1/n
 
   return loss, dx

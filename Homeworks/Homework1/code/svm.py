@@ -5,7 +5,7 @@ from layers import *
 class SVM(object):
   """
   A binary SVM classifier with optional hidden layers.
-  
+
   Note that this class does not implement gradient descent; instead, it
   will interact with a separate Solver object that is responsible for running
   optimization.
@@ -13,7 +13,7 @@ class SVM(object):
   The learnable parameters of the model are stored in the dictionary
   self.params that maps parameter names to numpy arrays.
   """
-  
+
   def __init__(self, input_dim=100, hidden_dim=None, weight_scale=1e-3, reg=0.0):
     """
     Initialize a new network.
@@ -27,7 +27,7 @@ class SVM(object):
     """
     self.params = {}
     self.reg = reg
-    
+
     ############################################################################
     # TODO: Initialize the weights and biases of the model. Weights            #
     # should be initialized from a Gaussian with standard deviation equal to   #
@@ -36,7 +36,14 @@ class SVM(object):
     # weights and biases using the keys 'W1' and 'b1' and second layer weights #
     # and biases (if any) using the keys 'W2' and 'b2'.                        #
     ############################################################################
-    pass
+    self.params['b1'] = np.zeros(input_dim)
+    if hidden_dim != None:
+        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['W1'] = np.random.normal(0, weight_scale, (hidden_dim, input_dim))
+        self.params['W2'] = np.random.normal(0, weight_scale, (1, hidden_dim))
+    else:
+        self.params['W1'] = np.random.normal(0, weight_scale, (1, input_dim))
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -52,21 +59,26 @@ class SVM(object):
 
     Returns:
     If y is None, then run a test-time forward pass of the model and return:
-    - scores: Array of shape (N,) where scores[i] represents the classification 
+    - scores: Array of shape (N,) where scores[i] represents the classification
     score for X[i].
-    
+
     If y is not None, then run a training-time forward and backward pass and
     return a tuple of:
     - loss: Scalar value giving the loss
     - grads: Dictionary with the same keys as self.params, mapping parameter
       names to gradients of the loss with respect to those parameters.
-    """  
+    """
     scores = None
     ############################################################################
     # TODO: Implement the forward pass for the model, computing the            #
     # scores for X and storing them in the scores variable.                    #
     ############################################################################
-    pass
+    layer1 = fc_forward(X, self.params['W1'], self.params['b1'])
+    if self.hidden == 1:
+        layer1 = relu_forward(layer1)
+        scores = fc_forward(layer1, self.params['W2'], self.params['b2'])
+    else:
+        scores = layer1
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -74,7 +86,7 @@ class SVM(object):
     # If y is None then we are in test mode so just return scores
     if y is None:
       return scores
-    
+
     loss, grads = 0, {}
     ############################################################################
     # TODO: Implement the backward pass for the model. Store the loss          #
