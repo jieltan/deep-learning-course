@@ -460,7 +460,10 @@ def logistic_loss(x, y):
   y = y.reshape(y.shape[0],1)
   loss = np.mean(-y * np.log(s) - (1 - y) * np.log(1 - s))
   dx = 1/n * (s - y)
-
+  #print(x)
+  #print(s)
+  #print(np.log(1 - s))
+  #print(loss)
   return loss, dx
 
 
@@ -476,7 +479,12 @@ def softmax_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
-  loss = np.mean(np.exp(x)/np.sum(np.exp(x)))
-  dx = 1/n
+  N, = y.shape
+  s = np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
+
+  loss = -np.log(s[range(N), y]).mean()
+  dx = s
+  dx[range(N), y] -= 1
+  dx /= N
 
   return loss, dx

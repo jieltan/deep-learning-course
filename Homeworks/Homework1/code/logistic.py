@@ -75,12 +75,14 @@ i
     # scores for X and storing them in the scores variable.                    #
     ############################################################################
     layer1, cache1 = fc_forward(X, self.params['W1'], self.params['b1'])
-    if self.hidden == 1:
-        layer1, cache1 = relu_forward(layer1)
+    if self.hidden is True:
+        layer1, relucache = relu_forward(layer1)
         scores, cache = fc_forward(layer1, self.params['W2'], self.params['b2'])
     else:
         scores = layer1
         cache  = cache1
+    N, _ = scores.shape
+    scores = scores.reshape((N,))
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -97,14 +99,18 @@ i
     # Don't forget to add L2 regularization.                                   #
     #                                                                          #
     ############################################################################
-    if self.hidden:
-        loss, grad1 = logistic_loss(scores, y)
-        loss1, grad2 = relu_backward(grad1, cache)
+    scores = scores.reshape((N, 1))
+    if self.hidden is True:
+        loss, grad2 = logistic_loss(scores, y)
+        dx, grads['W2'], grads['b2'] = fc_backward(grad2, cache)
+        grads['W2'] = grads['W2'] + self.reg*self.params['W2']
+        relugrad = relu_backward(dx, relucache)
+        _, grads['W1'], grads['b1'] = fc_backward(relugrad, cache1)
+        grads['W1'] = grads['W1'] + self.reg*self.params['W1']
     else:
         loss, grad1 = logistic_loss(scores, y)
-        #print(loss)
         _ ,grads['W1'],grads['b1'] = fc_backward(grad1, cache)
-
+        grads['W1'] = grads['W1'] + self.reg*self.params['W1']
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
