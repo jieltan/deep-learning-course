@@ -72,8 +72,15 @@ class SoftmaxClassifier(object):
         # TODO: Implement the forward pass for the one-layer net, computing the    #
         # class scores for X and storing them in the scores variable.              #
         ############################################################################
-        pass
-        ############################################################################
+        layer1, cache1 = fc_forward(X, self.params['W1'], self.params['b1'])
+		if self.hidden is True:
+			layer1, relucache = relu_forward(layer1)
+			scores, cache = fc_forward(layer1, self.params['W2'], self.params['b2'])
+		else:
+			scores = layer1
+			cache  = cache1
+
+		############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
 
@@ -92,7 +99,17 @@ class SoftmaxClassifier(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        pass
+        if self.hidden is True:
+			loss, grad2 = logistic_loss(scores, y)
+			dx, grads['W2'], grads['b2'] = fc_backward(grad2, cache)
+        grads['W2'] = grads['W2'] + self.reg*self.params['W2']
+        relugrad = relu_backward(dx, relucache)
+        _, grads['W1'], grads['b1'] = fc_backward(relugrad, cache1)
+        grads['W1'] = grads['W1'] + self.reg*self.params['W1']
+		else:
+			loss, grad1 = logistic_loss(scores, y)
+			_ ,grads['W1'],grads['b1'] = fc_backward(grad1, cache)
+			grads['W1'] = grads['W1'] + self.reg*self.params['W1']
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
