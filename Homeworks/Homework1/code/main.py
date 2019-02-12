@@ -1,6 +1,7 @@
 import pickle
 from logistic import *
 from svm import *
+from softmax import *
 from solver import *
 import numpy as np
 
@@ -50,18 +51,43 @@ def main():
     #                    print_every=100)
     #svmsolver.train()
 
-    print('hidden svm')
-    hidden_svm = SVM(input_dim=20, hidden_dim=5, reg=0.1)
-    hidden_svmsolver = Solver(hidden_svm, logdata,
+    #print('hidden svm')
+    #hidden_svm = SVM(input_dim=20, hidden_dim=5, reg=0.1)
+    #hidden_svmsolver = Solver(hidden_svm, logdata,
+    #                    update_rule='sgd',
+    #                    optim_config={
+    #                        'learning_rate': 3,
+    #                        },
+    #                    lr_decay=0.95,
+    #                    num_epochs=50, batch_size=100,
+    #                    print_every=100)
+    #hidden_svmsolver.train()
+    #print(hidden_svmsolver.check_accuracy(logdata['X_train'], logdata['y_train'], num_samples=500))
+
+    print('softmax')
+    softmax = SoftmaxClassifier(input_dim=20)
+    softmaxsolver = Solver(softmax, logdata,
                         update_rule='sgd',
                         optim_config={
-                            'learning_rate': 3,
+                            'learning_rate':50,
                             },
                         lr_decay=0.95,
                         num_epochs=50, batch_size=100,
                         print_every=100)
-    hidden_svmsolver.train()
-    print(hidden_svmsolver.check_accuracy(logdata['X_train'], logdata['y_train'], num_samples=500))
+    softmaxsolver.train()
+
+    #print('hidden svm')
+    #hidden_softmax = SVM(input_dim=20, hidden_dim=5, reg=0.1)
+    #hidden_softmaxsolver = Solver(hidden_softmax, logdata,
+    #                    update_rule='sgd',
+    #                    optim_config={
+    #                        'learning_rate': 3,
+    #                        },
+    #                    lr_decay=0.95,
+    #                    num_epochs=50, batch_size=100,
+    #                    print_every=100)
+    #hidden_softmaxsolver.train()
+    #print(hidden_svmsolver.check_accuracy(logdata['X_train'], logdata['y_train'], num_samples=500))
 
 if __name__ == '__main__':
     main()
