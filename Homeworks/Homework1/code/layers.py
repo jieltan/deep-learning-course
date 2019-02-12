@@ -480,9 +480,12 @@ def softmax_loss(x, y):
   - dx: Gradient of the loss with respect to x
   """
   N, = y.shape
+  print(y.shape)
   s = np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
-
-  loss = -np.log(s[range(N), y]).mean()
+  print(x.shape)
+  print(s.shape)
+  print(s[range(N), y])
+  loss = np.mean(-np.log(s[range(N), y]))
   dx = s
   dx[range(N), y] -= 1
   dx /= N

@@ -88,6 +88,8 @@ class SoftmaxClassifier(object):
         else:
             scores = layer1
             cache  = cache1
+        #N, _ = scores.shape
+        #scores = scores.reshape((N,))
 
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -108,6 +110,7 @@ class SoftmaxClassifier(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
+        #scores = scores.reshape((N, 1))
         if self.hidden is True:
             loss, grad2 = softmax_loss(scores, y)
             dx, grads['W2'], grads['b2'] = fc_backward(grad2, cache)
