@@ -100,6 +100,7 @@ i
     #                                                                          #
     ############################################################################
     scores = scores.reshape((N, 1))
+    y = y.reshape(y.shape[0],1)
     if self.hidden is True:
         loss, grad2 = logistic_loss(scores, y)
         dx, grads['W2'], grads['b2'] = fc_backward(grad2, cache)

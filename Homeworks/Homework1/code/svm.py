@@ -103,15 +103,16 @@ class SVM(object):
     ############################################################################
     scores = scores.reshape((N, 1))
     y = y*2 - 1
+    y1 = y.reshape(y.shape[0],1)
     if self.hidden is True:
-        loss, grad2 = svm_loss(scores, y)
+        loss, grad2 = svm_loss(scores, y1)
         dx, grads['W2'], grads['b2'] = fc_backward(grad2, cache)
         grads['W2'] = grads['W2'] + self.reg*self.params['W2']
         relugrad = relu_backward(dx, relucache)
         _, grads['W1'], grads['b1'] = fc_backward(relugrad, cache1)
         grads['W1'] = grads['W1'] + self.reg*self.params['W1']
     else:
-        loss, grad1 = svm_loss(scores, y)
+        loss, grad1 = svm_loss(scores, y1)
         _ ,grads['W1'],grads['b1'] = fc_backward(grad1, cache)
         grads['W1'] = grads['W1'] + self.reg*self.params['W1']
     ############################################################################

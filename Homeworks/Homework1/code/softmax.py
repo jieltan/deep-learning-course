@@ -42,15 +42,15 @@ class SoftmaxClassifier(object):
         # dictionary self.params, with fc weights                                  #
         # and biases using the keys 'W' and 'b'                                    #
         ############################################################################
-        self.params['b1'] = np.zeros(1)
+        self.params['b1'] = np.zeros(num_classes)
         self.hidden = hidden_dim != None
         if hidden_dim != None:
             self.params['b1'] = np.zeros(hidden_dim)
-            self.params['b2'] = np.zeros(1)
+            self.params['b2'] = np.zeros(num_classes)
             self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
-            self.params['W2'] = np.random.normal(0, weight_scale, (hidden_dim, 1))
+            self.params['W2'] = np.random.normal(0, weight_scale, (hidden_dim, num_classes))
         else:
-            self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, 1))
+            self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, num_classes))
 
         ############################################################################
         #                             END OF YOUR CODE                             #
