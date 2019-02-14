@@ -359,7 +359,7 @@ pool_param = {
 dout = np.random.randn(3, 2, 3, 3)
 
 dx_num = eval_numerical_gradient_array(lambda x: max_pool_forward(x, pool_param)[0], x, dout)
-
+print(dx_num)
 
 _, cache = max_pool_forward(x, pool_param)
 dx = max_pool_backward(dout, cache)

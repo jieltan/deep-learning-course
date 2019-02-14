@@ -445,18 +445,11 @@ def max_pool_forward(x, pool_param):
     stride = pool_param['stride']
 
     N, C, H, W = x.shape
-    H_alt, W_alt = (H - HH) / stride + 1, (W - WW) / stride + 1
+    Halt, Walt = (H - HH)/stride + 1, (W - WW)/stride + 1
 
-    x_col = im2col_indices(
-      x.reshape(N*C,1,H,W), HH, WW, padding=0, stride=stride
-    )
-
-    switches = np.argmax(x_col, axis=0)
-    out = np.choose(switches, x_col).reshape(H_,W_,N,C).transpose(2,3,0,1)
-
-    out = np.zeros((N, C, H_, W_))
-    for i, ii in enumerate(xrange(0, H-HH+1, stride)):
-        for j, jj in enumerate(xrange(0, W-WW+1, stride)):
+    out = np.zeros((N, C, int(Halt), int(Walt)))
+    for i, ii in enumerate(range(0, H-HH+1, stride)):
+        for j, jj in enumerate(range(0, W-WW+1, stride)):
             out[:,:,i,j] = np.max(x[:,:,ii:ii+HH,jj:jj+WW], axis=(2,3))
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -480,7 +473,18 @@ def max_pool_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the max-pooling backward pass                           #
     ###########################################################################
-    pass
+    x, pool_param = cache
+    HH, WW = pool_param['pool_height'], pool_param['pool_width']
+    stride = pool_param['stride']
+
+    N, C, H, W = x.shape
+    Halt, Walt = (H - HH)/stride + 1, (W - WW)/stride + 1
+    dx = np.zeros(dout.shape)
+    for i, ii in enumerate(range(0, H-HH+1, stride)):
+        for j, jj in enumerate(range(0, W-WW+1, stride)):
+            dx[:,:,i,j] = np.max(x[:,:,ii:ii+HH,jj:jj+WW], axis=(2,3))
+    dx = dout * dx
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
