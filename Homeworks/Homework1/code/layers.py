@@ -397,7 +397,21 @@ def conv_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
-    pass
+    x,w = cache
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    _, _, Halt, Walt = dout.shape
+    Halt = 1 + (H -HH)
+    Walt = 1 + (W -WW)
+    dx, dw = np.zeros(x.shape), np.zeros(w.shape)
+    w_re = w.reshape(F, -1)
+
+
+    for i, ii in enumerate(range(0, Halt, 1)):
+        for j, jj in enumerate(range(0, Walt, 1)):
+            dw += (dout[:,:,i,j].T @ x[:, :, ii:ii+HH, jj:jj+WW].reshape(N, -1)).reshape(dw.shape)
+            dx[:,:, ii:ii+HH, jj:jj+WW] += (dout[:,:,i,j] @ w_re).reshape(N, C, HH, WW)
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
