@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 class VGG(nn.Module):
     # You will implement a simple version of vgg11 (https://arxiv.org/pdf/1409.1556.pdf)
-    # Since the shape of image in CIFAR10 is 32x32x3, much smaller than 224x224x3, 
+    # Since the shape of image in CIFAR10 is 32x32x3, much smaller than 224x224x3,
     # the number of channels and hidden units are decreased compared to the architecture in paper
     def __init__(self):
         super(VGG, self).__init__()
@@ -20,29 +20,49 @@ class VGG(nn.Module):
             # Stage 1
             # TODO: convolutional layer, input channels 3, output channels 8, filter size 3
             # TODO: max-pooling layer, size 2
-            
+			nn.Conv2d(3,8,3,padding=1),
+			nn.MaxPool2d(2),
             # Stage 2
             # TODO: convolutional layer, input channels 8, output channels 16, filter size 3
             # TODO: max-pooling layer, size 2
-            
+			nn.Conv2d(8,16,3,padding=1),
+			nn.MaxPool2d(2),
+
             # Stage 3
             # TODO: convolutional layer, input channels 16, output channels 32, filter size 3
             # TODO: convolutional layer, input channels 32, output channels 32, filter size 3
             # TODO: max-pooling layer, size 2
-            
+			nn.Conv2d(8,16,3,padding=1),
+			nn.BatchNorm2d(32),
+			nn.ReLU(inplace=True),
+			nn.Conv2d(32,32,3,padding=1),
+			nn.MaxPool2d(2),
             # Stage 4
             # TODO: convolutional layer, input channels 32, output channels 64, filter size 3
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: max-pooling layer, size 2
-
+			nn.Conv2d(32,64,3,padding=1),
+			nn.BatchNorm2d(64),
+			nn.ReLU(inplace=True),
+			nn.Conv2d(64,64,3,padding=1),
+			nn.MaxPool2d(2),
             # Stage 5
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: max-pooling layer, size 2
+			nn.Conv2d(64,64,3,padding=1),
+			nn.BatchNorm2d(64),
+			nn.ReLU(inplace=True),
+			nn.Conv2d(64,64,3,padding=1),
+			nn.MaxPool2d(2)
         )
         self.fc = nn.Sequential(
             # TODO: fully-connected layer (64->64)
             # TODO: fully-connected layer (64->10)
+			nn.Linear(64,64),
+			nn.ReLU(inplace=True),
+			nn.Dropout(),
+			nn.Linear(64,10)
         )
 
     def forward(self, x):
@@ -63,7 +83,11 @@ def train(trainloader, net, criterion, optimizer, device):
             # TODO: forward pass
             # TODO: backward pass
             # TODO: optimize the network
-            
+            optimizer.zero_gra()
+			output = net(images)
+			loss = criterion(output,labels)
+			loss.backward()
+			optimizer.step()
             # print statistics
             # running_loss += loss.item()
             if i % 100 == 99:    # print every 2000 mini-batches
@@ -113,8 +137,8 @@ def main():
 
     train(trainloader, net, criterion, optimizer, device)
     test(testloader, net, device)
-    
+
 
 if __name__== "__main__":
     main()
-   
+

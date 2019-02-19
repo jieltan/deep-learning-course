@@ -446,7 +446,8 @@ def max_pool_forward(x, pool_param):
 
     N, C, H, W = x.shape
     Halt, Walt = (H - HH)/stride + 1, (W - WW)/stride + 1
-
+    #print(Halt)
+    #print(Walt)
     out = np.zeros((N, C, int(Halt), int(Walt)))
     for i, ii in enumerate(range(0, H-HH+1, stride)):
         for j, jj in enumerate(range(0, W-WW+1, stride)):
@@ -476,20 +477,26 @@ def max_pool_backward(dout, cache):
     x, pool_param = cache
     HH, WW = pool_param['pool_height'], pool_param['pool_width']
     stride = pool_param['stride']
+    N, C, H, W = dout.shape
 
-    N, C, H, W = x.shape
-    Halt, Walt = (H - HH)/stride + 1, (W - WW)/stride + 1
-    dx = np.zeros(dout.shape)
-    for i, ii in enumerate(range(0, H-HH+1, stride)):
-        for j, jj in enumerate(range(0, W-WW+1, stride)):
-            dx[:,:,i,j] = np.max(x[:,:,ii:ii+HH,jj:jj+WW], axis=(2,3))
-    dx = dout * dx
+    #print(x)
+    #print(dout)
+    dx = np.zeros(x.shape)
+    for n in range(N):
+        for c in range(C):
+            for h in range(H):
+                for w in range(W):
+                    xp = x[n,c,h*stride:h*stride+HH,w*stride:w*stride+WW]
+                    mask = (xp == np.max(xp))
+                    #print(xp)
+                    #print(np.max(xp))
+                    dx[n,c,h*stride:h*stride+HH,w*stride:w*stride+WW] += mask*dout[n,c,h,w]
+
 
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return dx
-
 
 def svm_loss(x, y):
   """

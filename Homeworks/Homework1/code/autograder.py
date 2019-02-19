@@ -359,11 +359,11 @@ pool_param = {
 dout = np.random.randn(3, 2, 3, 3)
 
 dx_num = eval_numerical_gradient_array(lambda x: max_pool_forward(x, pool_param)[0], x, dout)
-print(dx_num)
+#print(dx_num !=0)
 
 _, cache = max_pool_forward(x, pool_param)
 dx = max_pool_backward(dout, cache)
-
+#print((dx != 0))
 print('\nTesting max_pooling_backward function:')
 # The errors should be around 3e-12
 print('dx error: ', rel_error(dx_num, dx))
