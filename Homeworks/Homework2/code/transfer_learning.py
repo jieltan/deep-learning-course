@@ -209,7 +209,8 @@ def freeze(device, dataloaders, dataset_sizes, class_names):
     # Freeze all parameterws in the pre-trained network.                               #
     # Hint: go over all parameters and set requires_grad to False                      #
     ####################################################################################
-
+    for p in model_conv.parameters():
+        p.requires_grad = False
 
     ####################################################################################
     #                             END OF YOUR CODE                                     #
@@ -222,6 +223,9 @@ def freeze(device, dataloaders, dataset_sizes, class_names):
     # Replace last layer in with a 2-label linear layer                                #
     ####################################################################################
     # Parameters of newly constructed modules have requires_grad=True by default
+    num_filter = model_conv.fc.in_features
+    model_conv.fc = nn.Linear(num_filter,2)
+    model_conv = model_conv.to(device)
 
 
     ####################################################################################
@@ -235,7 +239,7 @@ def freeze(device, dataloaders, dataset_sizes, class_names):
     # Set the criterion function for multi-class classification, and set the optimizer.#
     # Note: Make sure that the optimizer only updates the parameters of the last layer #
     ####################################################################################
-
+    criterion = nn.CrossEntropyLoss()
 
 
     ####################################################################################
