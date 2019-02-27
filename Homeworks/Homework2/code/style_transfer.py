@@ -81,6 +81,8 @@ def content_loss(content_weight, content_current, content_target):
     Returns:
     - scalar content loss
     """
+    cl = content_weight * nn.MSELoss(content_current - content_target)
+    return cl
 
 
 
@@ -128,6 +130,12 @@ def style_loss(feats, style_layers, style_targets, style_weights):
     # Hint: you can do this with one for loop over the style layers, and should
     # not be very much code (~5 lines). You will need to use your gram_matrix function.
 
+    g = gram_matrix(feats)
+    sl = 0
+    for i in style_layers:
+        sl += style_weights[i] * nn.MSELoss(g[i], style_targets[i])
+    return sl
+
 
 
 def tv_loss(img, tv_weight):
@@ -143,6 +151,7 @@ def tv_loss(img, tv_weight):
       for img weighted by tv_weight.
     """
     # Your implementation should be vectorized and not require any loops!
+    loss = tv_weight * (nn.MSELoss(x[:,:,1:,:], x[:,:,:-1,:]) + nn.MSELoss(x[:,:,:,1:], x[:,:,:,:-1]))
 
 
 
@@ -226,9 +235,11 @@ def style_transfer(content_image, style_image, image_size, style_size, content_l
 
         feats = extract_features(img_var, cnn)
 
-        #TODO:Compute loss
-
-
+        #DONE:Compute loss
+        cl  = content_loss(content_weight, feats[content_layer], content_target)
+        sl  = style_loss(feats, style_layers, style_targets, style_weights)
+        tvl = tv_loss(img, tv_weight)
+        loss = cl + sl + tvl
 
         # Perform gradient descents on our image values
         if t == decay_lr_at:
