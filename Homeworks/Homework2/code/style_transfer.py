@@ -260,34 +260,34 @@ def style_transfer(content_image, style_image, image_size, style_size, content_l
 
 def main():
     # Composition VII + Tubingen
-    params1 = {
-        'content_image' : 'styles/tubingen.jpg',
-        'style_image' : 'styles/composition_vii.jpg',
-        'image_size' : 192,
-        'style_size' : 512,
-        'content_layer' : 3,
-        'content_weight' : 5e-2,
-        'style_layers' : (1, 4, 6, 7),
-        'style_weights' : (20000, 500, 12, 1),
-        'tv_weight' : 5e-2
-    }
+    #params1 = {
+    #    'content_image' : 'styles/tubingen.jpg',
+    #    'style_image' : 'styles/composition_vii.jpg',
+    #    'image_size' : 192,
+    #    'style_size' : 512,
+    #    'content_layer' : 3,
+    #    'content_weight' : 5e-2,
+    #    'style_layers' : (1, 4, 6, 7),
+    #    'style_weights' : (20000, 500, 12, 1),
+    #    'tv_weight' : 5e-2
+    #}
 
-    style_transfer(**params1)
+    #style_transfer(**params1)
 
-    # Scream + Tubingen
-    params2 = {
-        'content_image':'styles/tubingen.jpg',
-        'style_image':'styles/the_scream.jpg',
-        'image_size':192,
-        'style_size':224,
-        'content_layer':3,
-        'content_weight':3e-2,
-        'style_layers':[1, 4, 6, 7],
-        'style_weights':[200000, 800, 12, 1],
-        'tv_weight':2e-2
-    }
+    ## Scream + Tubingen
+    #params2 = {
+    #    'content_image':'styles/tubingen.jpg',
+    #    'style_image':'styles/the_scream.jpg',
+    #    'image_size':192,
+    #    'style_size':224,
+    #    'content_layer':3,
+    #    'content_weight':3e-2,
+    #    'style_layers':[1, 4, 6, 7],
+    #    'style_weights':[200000, 800, 12, 1],
+    #    'tv_weight':2e-2
+    #}
 
-    style_transfer(**params2)
+    #style_transfer(**params2)
 
     # Starry Night + Tubingen
     params3 = {
