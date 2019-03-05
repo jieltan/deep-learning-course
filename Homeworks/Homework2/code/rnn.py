@@ -1,6 +1,6 @@
 import numpy as np
 
-from layers import *
+#from layers import *
 from rnn_layers import *
 
 
@@ -133,25 +133,35 @@ class CaptioningRNN(object):
 
         # Forward Pass
         # (1)
-        
+        h0 = features @ W_proj + b_proj
         # (2)
-        
+        word_f, word_cache = word_embedding(captions_in, W_embed)
         # (3)
-        
+        if self.cell_type is 'rnn':
+            h1, h1_cache = rnn_forward(word_f, h0, Wx, Wh, b)
+        else:
+            h1, h1_cache = lstm_forward(word_f, h0, Wx, Wh, b)
         # (4)
-        
+        tfc, tfc_cache = temporal_fc_forwad(h1, W_vocab, b_vocab)
         # (5)
-
+        loss, dtfc = temporal_softmax_loss(tfc, capations_out, mask)
 
         # Gradients
         # (4)
-        
-        # (3)
-        
-        # (2)
-        
-        # (1)
+        dh1, grad['W_vocab'], grad['b_vocab'] = temporal_fc_backward(dta, tfc_cache)
 
+        # (3)
+        if self.cell_type is 'rnn':
+            dword_f, dh0, grad['Wx'], grad['Wh'], grad['b'] = rnn_backward(h1, h1_cache)
+        else:
+            dword_f, dh0, grad['Wx'], grad['Wh'], grad['b'] = lstm_backward(h1, h1_cache)
+
+        # (2)
+        grad['W_embed'] = word_embedding_backward(dword_f, word_cache)
+
+        # (1)
+        grad['b_proj']  = np.sum(dh0, axis=0)
+        grad['dW_proj'] = features.T @ dh0
 
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -210,6 +220,24 @@ class CaptioningRNN(object):
         # functions; you'll need to call rnn_step_forward or lstm_step_forward in #
         # a loop.                                                                 #
         ###########################################################################
+        h = features @ W_proj + b_proj
+        x = self._start
+        N, H = h.shape
+
+        if self.cell_type is 'lstm':
+            c = np.zeros((N,H))
+
+        for t in range(max_length):
+            word_f, _ = word_embedding_forward(x, W_embed)
+
+            if self.cell_type is 'rnn':
+                h1, _ = rnn_step_forward(word_f, h, Wx, Wh, b)
+            else:
+                h1, c, _ = lstm_step_forward(word_f, h, c, Wx, Wh, b)
+            scores = h1 @ W_vocab + b_vocab
+            h = h1
+            x = np.argmax(scores,axis=1)
+            captions[:,t] = x
 
 
 

@@ -300,6 +300,8 @@ def lstm_forward(x, h0, Wx, Wh, b):
         next_h, next_c, c = lstm_step_forward(x[t,:,:], prev_h, prev_c, Wx, Wh,b)
         cache.append(c)
         h[t,:,:] = next_h
+        prev_h = next_h
+        prev_c = next_c
     cache.append((T,N,D,H))
 
     ##############################################################################
@@ -461,7 +463,7 @@ def temporal_softmax_loss(x, y, mask):
     x = x.reshape(N*T,V)
     y = y.reshape(N*T)
     mask = mask.reshape(N*T)
-    s = np.exp(x - np.max(x, axis=1, keepdims=True)) / np.sum(np.exp(x - np.max(x, axis=1, keepdims=True)), axis=1, keepdims=True)
+    s = np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
     loss = -np.sum(mask * np.log(s[range(N*T), y])) / N
     dx = s
     dx[range(N*T), y] -= 1
