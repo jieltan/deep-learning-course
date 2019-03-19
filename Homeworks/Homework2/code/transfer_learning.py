@@ -177,9 +177,8 @@ def finetune(device, dataloaders, dataset_sizes, class_names):
     ####################################################################################
     # Set the criterion function for multi-class classification, and set the optimizer #
     ####################################################################################
-    model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.SGD(model_ft.parameters(),lr=1e-2,momentum=0.8)
+    optimizer_ft = optim.SGD(model_ft.parameters(),lr=1e-3,momentum=0.9)
 
 
 
@@ -225,7 +224,6 @@ def freeze(device, dataloaders, dataset_sizes, class_names):
     # Parameters of newly constructed modules have requires_grad=True by default
     num_filter = model_conv.fc.in_features
     model_conv.fc = nn.Linear(num_filter,2)
-    model_conv = model_conv.to(device)
 
 
     ####################################################################################
@@ -240,7 +238,7 @@ def freeze(device, dataloaders, dataset_sizes, class_names):
     # Note: Make sure that the optimizer only updates the parameters of the last layer #
     ####################################################################################
     criterion = nn.CrossEntropyLoss()
-
+    optimizer_conv = optim.SGD(model_conv.fc.parameters(),lr=1e-3,momentum=0.9)
 
     ####################################################################################
     #                             END OF YOUR CODE                                     #

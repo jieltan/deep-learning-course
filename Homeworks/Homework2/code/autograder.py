@@ -301,6 +301,7 @@ correct_out = np.array([[[-0.01102618, -0.00660349, -0.00199597,  0.00279512,  0
   [ 0.02587248,  0.04028845,  0.05562386,  0.07184049,  0.08888991]]])
 
 # Compare your output with ours. The error should be around 2e-5.
+print(out)
 print('\nTesting lstm_forward function:')
 print('difference: ', rel_error(out, correct_out))
 
