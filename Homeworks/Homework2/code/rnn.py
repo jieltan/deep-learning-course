@@ -135,33 +135,34 @@ class CaptioningRNN(object):
         # (1)
         h0 = features @ W_proj + b_proj
         # (2)
-        word_f, word_cache = word_embedding(captions_in, W_embed)
+        word_f, word_cache = word_embedding_forward(captions_in, W_embed)
+        word_f = word_f.swapaxes(0,1)
         # (3)
         if self.cell_type is 'rnn':
             h1, h1_cache = rnn_forward(word_f, h0, Wx, Wh, b)
         else:
             h1, h1_cache = lstm_forward(word_f, h0, Wx, Wh, b)
         # (4)
-        tfc, tfc_cache = temporal_fc_forwad(h1, W_vocab, b_vocab)
+        tfc, tfc_cache = temporal_fc_forward(h1, W_vocab, b_vocab)
         # (5)
-        loss, dtfc = temporal_softmax_loss(tfc, capations_out, mask)
+        loss, dtfc = temporal_softmax_loss(tfc, captions_out, mask)
 
         # Gradients
         # (4)
-        dh1, grad['W_vocab'], grad['b_vocab'] = temporal_fc_backward(dta, tfc_cache)
+        dh1, grads['W_vocab'], grads['b_vocab'] = temporal_fc_backward(tfc, tfc_cache)
 
         # (3)
         if self.cell_type is 'rnn':
-            dword_f, dh0, grad['Wx'], grad['Wh'], grad['b'] = rnn_backward(h1, h1_cache)
+            dword_f, dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(h1, h1_cache)
         else:
-            dword_f, dh0, grad['Wx'], grad['Wh'], grad['b'] = lstm_backward(h1, h1_cache)
+            dword_f, dh0, grads['Wx'], grads['Wh'], grads['b'] = lstm_backward(h1, h1_cache)
 
         # (2)
-        grad['W_embed'] = word_embedding_backward(dword_f, word_cache)
+        grads['W_embed'] = word_embedding_backward(dword_f.swapaxes(0,1), word_cache)
 
         # (1)
-        grad['b_proj']  = np.sum(dh0, axis=0)
-        grad['dW_proj'] = features.T @ dh0
+        grads['b_proj']  = np.sum(dh0, axis=0)
+        grads['W_proj'] = features.T @ dh0
 
         ############################################################################
         #                             END OF YOUR CODE                             #
