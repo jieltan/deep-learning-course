@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from math import sqrt
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data as data_utils
 import time
 import pickle
@@ -121,15 +122,18 @@ def create_emb_layer(weights_matrix, non_trainable=False):
     return emb_layer, num_embeddings, embedding_dim
 
 
-class q6_5(nn.Module):
+class cnn(nn.Module):
     def __init__(self, weights_matrix):
         super().__init__()
 
         self.embedding, num_embeddings, embedding_dim = create_emb_layer(weights_matrix, True)
 
         self.embed = nn.Embedding(num_embeddings,embedding_dim)
-        self.lstm = nn.LSTM(embedding_dim,2)
+        self.conv = nn.Conv1d()
+        self.pool = nn.AvgPool1d()
+        self.relu = nn.ReLU()
         self.fc = nn.Linear(20, 1)
+        self.sig = nn.Sigmoid()
 
 
     def init_weights(self):
@@ -270,7 +274,7 @@ def main():
     net = q6_5(weights_matrix).to(device)
     net.init_weights()
     criterion = nn.BCELoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.1, momentum=0.8)
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.1, momentum=0.8)
 
     train(trainloader, net, criterion, optimizer, device)
     test(testloader, net, device)
