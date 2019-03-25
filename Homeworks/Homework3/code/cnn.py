@@ -10,14 +10,14 @@ import bcolz
 
 
 
-def loader(dictionary):
+def loader(dictionary, pad=15):
 
     print("Loading Train data")
     X_train = []
     y_train = []
 
 
-    f = open('data/train.txt')
+    f = open('../../Homework2/code/data/train.txt')
     for l in f:
         y_train.append(int(l[0]))
         line = l[2:].split()
@@ -28,16 +28,16 @@ def loader(dictionary):
             if item in dictionary:
                 temp.append(dictionary[item])
                 count += 1
-            if count == 10:
+            if count == pad:
                 break
 
-        while count < 10:
+        while count < pad:
             for item in line:
 
                 if item in dictionary:
                     temp.append(dictionary[item])
                     count += 1
-                if count == 10:
+                if count == pad:
                     break
 
         X_train.append(temp)
@@ -51,7 +51,7 @@ def loader(dictionary):
     X_test = []
     y_test = []
 
-    f = open('data/test.txt')
+    f = open('../../Homework2/code/data/test.txt')
     for l in f:
         y_test.append(int(l[0]))
         line = l[2:].split()
@@ -63,15 +63,15 @@ def loader(dictionary):
             if item in dictionary:
                 temp.append(dictionary[item])
                 count += 1
-            if count == 10:
+            if count == pad:
                 break
 
-        while count < 10:
+        while count < pad:
             for item in line:
                 if item in dictionary:
                     temp.append(dictionary[item])
                     count += 1
-                if count == 10:
+                if count == pad:
                     break
 
         X_test.append(temp)
@@ -85,7 +85,7 @@ def loader(dictionary):
     X_unlabelled = []
 
 
-    f = open('data/unlabelled.txt')
+    f = open('../../Homework2/code/data/unlabelled.txt')
     for l in f:
         line = l[2:].split()
         temp = []
@@ -95,16 +95,16 @@ def loader(dictionary):
             if item in dictionary:
                 temp.append(dictionary[item])
                 count += 1
-            if count == 10:
+            if count == pad:
                 break
 
-        while count < 10:
+        while count < pad:
             for item in line:
 
                 if item in dictionary:
                     temp.append(dictionary[item])
                     count += 1
-                if count == 10:
+                if count == pad:
                     break
 
         X_unlabelled.append(temp)
@@ -113,17 +113,18 @@ def loader(dictionary):
     return X_train, y_train, X_test, y_test, X_unlabelled
 
 def create_emb_layer(weights_matrix, non_trainable=False):
-    num_embeddings, embedding_dim = weights_matrix.size()
+    #print(weights_matrix.shape)
+    num_embeddings, embedding_dim = weights_matrix.shape
     emb_layer = nn.Embedding(num_embeddings, embedding_dim)
-    emb_layer.load_state_dict({'weight': weights_matrix})
-    if non_trainable:
-        emb_layer.weight.requires_grad = False
+    #emb_layer.load_state_dict({'weight': weights_matrix})
+    #if non_trainable:
+    #    emb_layer.weight.requires_grad = False
 
     return emb_layer, num_embeddings, embedding_dim
 
 
-class cnn(nn.Module, pool='avg',kernel=5):
-    def __init__(self, weights_matrix, pool='avg',kernel=5,input_dim=10,num_filter=128):
+class cnn(nn.Module):
+    def __init__(self, weights_matrix, pool='avg',kernel=5,input_dim=15,num_filter=128):
         super().__init__()
 
         self.embedding, num_embeddings, embedding_dim = create_emb_layer(weights_matrix, True)
@@ -146,8 +147,10 @@ class cnn(nn.Module, pool='avg',kernel=5):
 
     def forward(self, x):
         emb = self.embed(x.long())
-        h1 = self.conv(emb)
-        h2 = self.pool(h1)
+        #print(emb.shape)
+        h1 = self.conv(emb.permute(0,2,1))
+        h2 = self.pool(h1).squeeze()
+        #print(h2.shape)
         h3 = self.fc(self.relu(h2))
         h4 = self.sig(h3)
         return h4
@@ -242,25 +245,25 @@ def main():
 
 
 
-    net = cnn(weights_matrix).to(device)
+    net = cnn(weights_matrix,pool='max',kernel=5).to(device)
     net.init_weights()
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=0.1, momentum=0.8)
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.1, momentum=0.8)
 
     train(trainloader, net, criterion, optimizer, device)
     test(testloader, net, device)
 
-    f = open('output/predictions_q5.txt', 'w')
+    #f = open('predictions_q1.txt', 'w')
 
-    for data in unlabelledloader:
-        info, = data
-        output = net(info.to(device).float())
-        output[output < 0.5] = int(0)
-        output[output >= 0.5] = int(1)
-        for item in output:
-            f.write(str(int(item.item())))
-            f.write("\n")
-    f.close()
+    #for data in unlabelledloader:
+    #    info, = data
+    #    output = net(info.to(device).float())
+    #    output[output < 0.5] = int(0)
+    #    output[output >= 0.5] = int(1)
+    #    for item in output:
+    #        f.write(str(int(item.item())))
+    #        f.write("\n")
+    #f.close()
 
 if __name__ == "__main__":
     main()
