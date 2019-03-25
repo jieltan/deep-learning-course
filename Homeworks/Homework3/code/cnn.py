@@ -122,17 +122,20 @@ def create_emb_layer(weights_matrix, non_trainable=False):
     return emb_layer, num_embeddings, embedding_dim
 
 
-class cnn(nn.Module):
-    def __init__(self, weights_matrix):
+class cnn(nn.Module, pool='avg',kernel=5):
+    def __init__(self, weights_matrix, pool='avg',kernel=5,input_dim=10,num_filter=128):
         super().__init__()
 
         self.embedding, num_embeddings, embedding_dim = create_emb_layer(weights_matrix, True)
 
         self.embed = nn.Embedding(num_embeddings,embedding_dim)
-        self.conv = nn.Conv1d()
-        self.pool = nn.AvgPool1d()
+        self.conv = nn.Conv1d(embedding_dim, num_filter, kernel)
+        if pool == 'avg':
+            self.pool = nn.AvgPool1d(input_dim-kernel+1)
+        else:
+            self.pool = nn.MaxPool1d(input_dim-kernel+1)
         self.relu = nn.ReLU()
-        self.fc = nn.Linear(20, 1)
+        self.fc = nn.Linear(num_filter, 1)
         self.sig = nn.Sigmoid()
 
 
@@ -142,12 +145,12 @@ class cnn(nn.Module):
         nn.init.constant_(self.fc.bias, 0.0)
 
     def forward(self, x):
-        z = self.embed(x.long())
-        z, hidden = self.lstm(z)
-        z = z.reshape((z.shape[0], z.shape[1]*z.shape[2]))
-        z = self.fc(z)
-        h = torch.sigmoid(z)
-        return h
+        emb = self.embed(x.long())
+        h1 = self.conv(emb)
+        h2 = self.pool(h1)
+        h3 = self.fc(self.relu(h2))
+        h4 = self.sig(h3)
+        return h4
 
 
 def train(trainloader, net, criterion, optimizer, device):
@@ -231,47 +234,15 @@ def main():
 
 
 
-    # The following usage of GloVe follows the tutorial from https://medium.com/@martinpella/how-to-use-pre-trained-word-embeddings-in-pytorch-71ca59249f76
-    words = []
-    idx = 0
-    word2idx = {}
-    vectors = bcolz.carray(np.zeros(1), rootdir=f'{glove_path}/6B.50.dat', mode='w')
-
-    with open(f'{glove_path}/glove.6B.50d.txt', 'rb') as f:
-        for l in f:
-            line = l.decode().split()
-            word = line[0]
-            words.append(word)
-            word2idx[word] = idx
-            idx += 1
-            vect = np.array(line[1:]).astype(np.float)
-            vectors.append(vect)
-
-    vectors = bcolz.carray(vectors[1:].reshape((400000, 50)), rootdir=f'{glove_path}/6B.50.dat', mode='w')
-    vectors.flush()
-    pickle.dump(words, open(f'{glove_path}/6B.50_words.pkl', 'wb'))
-    pickle.dump(word2idx, open(f'{glove_path}/6B.50_idx.pkl', 'wb'))
-
-    vectors = bcolz.open(f'{glove_path}/6B.50.dat')[:]
-    words = pickle.load(open(f'{glove_path}/6B.50_words.pkl', 'rb'))
-    word2idx = pickle.load(open(f'{glove_path}/6B.50_idx.pkl', 'rb'))
-
-    glove = {w: vectors[word2idx[w]] for w in words}
-
     matrix_len = len(dictionary)
     weights_matrix = np.zeros((matrix_len, 50))
-    words_found = 0
 
     for i, word in enumerate(dictionary):
-        try:
-            weights_matrix[i] = glove[word]
-            words_found += 1
-        except KeyError:
-            weights_matrix[i] = np.random.normal(scale=0.6, size=(50,))
+        weights_matrix[i] = np.random.normal(scale=0.6, size=(50,))
 
 
 
-    net = q6_5(weights_matrix).to(device)
+    net = cnn(weights_matrix).to(device)
     net.init_weights()
     criterion = nn.BCELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.1, momentum=0.8)
