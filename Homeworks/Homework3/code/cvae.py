@@ -26,10 +26,11 @@ class CVAE(nn.Module):
         ### Define a three layer neural network architecture #
         ### for the recognition_model                        #
         ######################################################
-        self.fc1 = nn.Linear(input_size, self.units)
+        self.fc1 = nn.Linear(input_size+class_size, self.units)
         self.fc2 = nn.Linear(self.units, self.units)
         self.layer_mu = nn.Linear(self.units, latent_size)
-        self.layer_logvar = nn.Linear(self.units, latents_size)
+        self.layer_logvar = nn.Linear(self.units, latent_size)
+        self.relu = nn.ReLU()
 
         ######################################################
         ###               END OF YOUR CODE                 ###
@@ -41,9 +42,10 @@ class CVAE(nn.Module):
         ### Define a three layer neural network architecture #
         ### for the generation_model                         #
         ######################################################
-        self.fc3 = nn.Linear(latent_size, self.units)
+        self.fc3 = nn.Linear(latent_size+class_size, self.units)
         self.fc4 = nn.Linear(self.units, self.units)
-        self.layer_output = nn.Linear(self.units, input_size)
+        self.layer_output = nn.Linear(self.units, input_size+class_size)
+        self.sig = nn.Sigmoid()
 
         ######################################################
         ###               END OF YOUR CODE                 ###
@@ -68,9 +70,11 @@ class CVAE(nn.Module):
         ###########################
         ######### TO DO ###########
         ###########################
+        #print(x.shape)
+        #print(c.shape)
         newx = torch.cat((x,c),1)
-        h1 = nn.ReLU(self.fc1(newx))
-        h2 = nn.ReLU(self.fc2(h1))
+        h1 = self.relu(self.fc1(newx))
+        h2 = self.relu(self.fc2(h1))
         mu = self.layer_mu(h2)
         logvar = self.layer_logvar(h2)
         return mu, logvar
@@ -97,9 +101,9 @@ class CVAE(nn.Module):
         ######### TO DO ###########
         ###########################
         newz = torch.cat((z,c),1)
-        h3 = nn.ReLU(self.fc3(newz))
-        h4 = nn.ReLU(self.fc4(newz))
-        x_hat = nn.Sigmoid(self.layer_output(h4))
+        h3 = self.relu(self.fc3(newz))
+        h4 = self.relu(self.fc4(h3))
+        x_hat = self.sig(self.layer_output(h4))
         return x_hat
 
     def forward(self, x, c):
@@ -121,7 +125,7 @@ class CVAE(nn.Module):
         ######### TO DO ###########
         ###########################
         mu, logvar = self.recognition_model(x, c)
-        z = self.reparameterize(mu, logvar)
+        z = self.reparametrize(mu, logvar)
         x_hat = self.generation_model(z,c)
         return x_hat, mu, logvar
 
@@ -148,7 +152,10 @@ def train(epoch, model, train_loader, optimizer, num_classes, use_cuda):
         labels = one_hot(labels, num_classes, use_cuda)
         recon_batch, mu, logvar = model(data, labels)
         optimizer.zero_grad()
-        loss = loss_function(recon_batch, data, mu, logvar)
+        #print(recon_batch.shape)
+        #print(data.shape)
+        #print(labels.shape)
+        loss = loss_function(recon_batch, torch.cat((data,labels),1), mu, logvar)
         loss.backward()
         train_loss += loss.data
         optimizer.step()
@@ -176,7 +183,7 @@ def loss_function(x_hat, x, mu, logvar):
     ###########################
     ######### TO DO ###########
     ###########################
-    BCE = F.binary_cross_entropy(x_hat, x.view(-1,self.input_size),size_average=False)
+    BCE = F.binary_cross_entropy(x_hat, x,size_average=False)
     DKL = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     loss = (BCE + DKL)/x.shape[0]
     return loss
@@ -222,7 +229,7 @@ def main():
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_aspect('equal')
-        plt.imshow(sample.reshape(28, 28), cmap='Greys_r')
+        plt.imshow(sample[:784].reshape(28, 28), cmap='Greys_r')
 
     plt.show()
 
