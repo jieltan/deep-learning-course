@@ -144,7 +144,7 @@ def build_discriminator(batch_size):
         nn.LeakyReLU(0.01),
         nn.MaxPool2d(2,stride=2),
         Flatten(),
-        nn.Linear(64,4*4*64),
+        nn.Linear(4*4*64,4*4*64),
         nn.LeakyReLU(0.01),
         nn.Linear(4*4*64,1)
     )
@@ -175,14 +175,14 @@ def build_generator(batch_size, noise_dim):
         ###########################
         nn.Linear(noise_dim, 1024),
         nn.ReLU(),
-        nn.BatchNorm2d(1024,7*7*128),
-        nn.Linear(),
-        nn.BatchNorm2d(),
+        nn.BatchNorm1d(1024),
+        nn.Linear(1024, 7*7*128),
+        nn.BatchNorm1d(7*7*128),
         Unflatten(),
-        nn.ConvTranspose2d(128,64,4,stride=2,pad=1),
+        nn.ConvTranspose2d(128,64,4,stride=2,padding=1),
         nn.ReLU(),
-        nn.BatchNorm2d(),
-        nn.ConvTranspose2d(64,1,4,stride=2,pad=1)
+        nn.BatchNorm2d(64),
+        nn.ConvTranspose2d(64,1,4,stride=2,padding=1),
         nn.Tanh(),
         Flatten()
     )
@@ -247,8 +247,8 @@ def discriminator_loss(logits_real, logits_fake, dtype):
     N, _ = logits_real.size()
     true_label = torch.ones(N,1).type(dtype)
     fake_label = torch.zeros(N,1).type(dtype)
-    real_loss = bce_loss()
-    fake_loss = bce_loss()
+    real_loss = bce_loss(logits_real,true_label)
+    fake_loss = bce_loss(logits_fake,fake_label)
     loss = real_loss + fake_loss
     return loss
 
@@ -297,6 +297,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
                 continue
             D_solver.zero_grad()
             real_data = Variable(x).type(dtype)
+            #print(real_data.shape)
             logits_real = D(2* (real_data - 0.5)).type(dtype)
 
             g_fake_seed = Variable(sample_noise(batch_size, noise_size)).type(dtype)
@@ -316,14 +317,15 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
             g_error.backward()
             G_solver.step()
 
-            if (iter_count % show_every == 0):
-                print('Iter: {}, D: {:.4}, G:{:.4}'.format(
-                    iter_count,d_total_error.data,g_error.data))
-                imgs_numpy = fake_images.data.cpu().numpy()
-                show_images(imgs_numpy[0:16])
-                plt.pause(1.0)
-                print()
-            iter_count += 1
+            #if (iter_count % show_every == 0):
+            #if (iter_count == num_epochs):
+    print('Iter: {}, D: {:.4}, G:{:.4}'.format(
+        iter_count,d_total_error.data,g_error.data))
+    imgs_numpy = fake_images.data.cpu().numpy()
+    show_images(imgs_numpy[0:16])
+    plt.pause(1.0)
+    print()
+#iter_count += 1
 
 
 def main():
