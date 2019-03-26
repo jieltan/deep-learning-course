@@ -179,7 +179,7 @@ def build_generator(batch_size, noise_dim):
         nn.Linear(),
         nn.BatchNorm2d(),
         Unflatten(),
-        nn.ConvTranspose2d(128,64,4,stride=2,pad=1)
+        nn.ConvTranspose2d(128,64,4,stride=2,pad=1),
         nn.ReLU(),
         nn.BatchNorm2d(),
         nn.ConvTranspose2d(64,1,4,stride=2,pad=1)
