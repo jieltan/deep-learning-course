@@ -113,7 +113,7 @@ def sample_noise(batch_size, dim):
     ###########################
     ######### TO DO ###########
     ###########################
-    random_noise = None
+    random_noise = torch.FloatTensor(batch_size,dim).uniform_(-1,1)
     return random_noise
 
 
@@ -137,6 +137,16 @@ def build_discriminator(batch_size):
         ######### TO DO ###########
         ###########################
         Unflatten(batch_size, 1, 28, 28),
+        nn.Conv2d(1,32,5,stride=1),
+        nn.LeakyReLU(0.01),
+        nn.MaxPool2d(2,stride=2),
+        nn.Conv2d(32,64,5,stride=1),
+        nn.LeakyReLU(0.01),
+        nn.MaxPool2d(2,stride=2),
+        Flatten(),
+        nn.Linear(64,4*4*64),
+        nn.LeakyReLU(0.01),
+        nn.Linear(4*4*64,1)
     )
 
 
@@ -163,6 +173,18 @@ def build_generator(batch_size, noise_dim):
         ###########################
         ######### TO DO ###########
         ###########################
+        nn.Linear(noise_dim, 1024),
+        nn.ReLU(),
+        nn.BatchNorm2d(1024,7*7*128),
+        nn.Linear(),
+        nn.BatchNorm2d(),
+        Unflatten(),
+        nn.ConvTranspose2d(128,64,4,stride=2,pad=1)
+        nn.ReLU(),
+        nn.BatchNorm2d(),
+        nn.ConvTranspose2d(64,1,4,stride=2,pad=1)
+        nn.Tanh(),
+        Flatten()
     )
 
 
@@ -180,7 +202,7 @@ def get_optimizer(model):
     ###########################
     ######### TO DO ###########
     ###########################
-    optimizer = None
+    optimizer = optim.Adam(model.parameters(),lr=1e-3,betas=(0.5,0.999))
     return optimizer
 
 
@@ -202,8 +224,9 @@ def bce_loss(input, target):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
-    return loss
+    neg_abs = - input.abs()
+    loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
+    return loss.mean()
 
 
 def discriminator_loss(logits_real, logits_fake, dtype):
@@ -221,7 +244,12 @@ def discriminator_loss(logits_real, logits_fake, dtype):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
+    N, _ = logits_real.size()
+    true_label = torch.ones(N,1).type(dtype)
+    fake_label = torch.zeros(N,1).type(dtype)
+    real_loss = bce_loss()
+    fake_loss = bce_loss()
+    loss = real_loss + fake_loss
     return loss
 
 
@@ -239,7 +267,9 @@ def generator_loss(logits_fake, dtype):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
+    N, _ = logits_fake.size()
+    true_label = torch.ones(N,1).type(dtype)
+    loss = bce_loss(logits_fake, true_label)
     return loss
 
 
