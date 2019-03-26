@@ -44,7 +44,7 @@ class CVAE(nn.Module):
         ######################################################
         self.fc3 = nn.Linear(latent_size+class_size, self.units)
         self.fc4 = nn.Linear(self.units, self.units)
-        self.layer_output = nn.Linear(self.units, input_size+class_size)
+        self.layer_output = nn.Linear(self.units, input_size)
         self.sig = nn.Sigmoid()
 
         ######################################################
@@ -155,7 +155,7 @@ def train(epoch, model, train_loader, optimizer, num_classes, use_cuda):
         #print(recon_batch.shape)
         #print(data.shape)
         #print(labels.shape)
-        loss = loss_function(recon_batch, torch.cat((data,labels),1), mu, logvar)
+        loss = loss_function(recon_batch, data, mu, logvar)
         loss.backward()
         train_loss += loss.data
         optimizer.step()
@@ -229,7 +229,7 @@ def main():
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_aspect('equal')
-        plt.imshow(sample[:784].reshape(28, 28), cmap='Greys_r')
+        plt.imshow(sample.reshape(28, 28), cmap='Greys_r')
 
     plt.show()
 
