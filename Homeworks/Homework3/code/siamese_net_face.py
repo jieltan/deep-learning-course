@@ -161,7 +161,9 @@ class ContrastiveLoss(torch.nn.Module):
         #print(label.shape)
         #print(output1.shape)
         #print(output1.norm(p=2,dim=1).shape)
-        loss = (1 - label) * (output1 - output2).norm(p=2,dim=1) + label * (torch.clamp((self.margin - (output1 - output2)).norm(p=2,dim=1), min=0)).pow(2)
+        loss = (1 - label) * (output1 - output2).norm(p=2,dim=1).unsqueeze(1) + label * (torch.clamp((self.margin - (output1 - output2).norm(p=2,dim=1).unsqueeze(1)), min=0)).pow(2)
+        #print(loss.shape)
+        #print((output1 - output2).norm(p=2,dim=1).shape)
         return loss.mean()
 
 
