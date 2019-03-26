@@ -34,7 +34,7 @@ def show_images(images):
         ax.set_yticklabels([])
         ax.set_aspect('equal')
         plt.imshow(img.reshape([sqrtimg,sqrtimg]))
-    return 
+    return
 
 
 def preprocess_img(x):
@@ -56,7 +56,7 @@ def count_params(model):
 
 
 class ChunkSampler(sampler.Sampler):
-    """Samples elements sequentially from some offset. 
+    """Samples elements sequentially from some offset.
     Arguments:
         num_samples: # of desired datapoints
         start: offset where we should start selecting from
@@ -77,7 +77,7 @@ class Flatten(nn.Module):
         N, C, H, W = x.size() # read in N, C, H, W
         return x.view(N, -1)  # "flatten" the C * H * W values into a single vector per image
 
-    
+
 class Unflatten(nn.Module):
     """
     An Unflatten module receives an input of shape (N, C*H*W) and reshapes it
@@ -105,7 +105,7 @@ def sample_noise(batch_size, dim):
     Input:
     - batch_size: Integer giving the batch size of noise to generate.
     - dim: Integer giving the dimension of noise to generate.
-    
+
     Output:
     - A PyTorch Tensor of shape (batch_size, dim) containing uniform
       random noise in the range (-1, 1).
@@ -170,10 +170,10 @@ def get_optimizer(model):
     """
     Construct and return an Adam optimizer for the model with learning rate 1e-3,
     beta1=0.5, and beta2=0.999.
-    
+
     Input:
     - model: A PyTorch model that we want to optimize.
-    
+
     Returns:
     - An Adam optimizer for the model with the desired hyperparameters.
     """
@@ -210,11 +210,11 @@ def discriminator_loss(logits_real, logits_fake, dtype):
     """
     Computes the discriminator loss described in the homework pdf
     using the bce_loss function.
-    
+
     Inputs:
     - logits_real: PyTorch Variable of shape (N,) giving scores for the real data.
     - logits_fake: PyTorch Variable of shape (N,) giving scores for the fake data.
-    
+
     Returns:
     - loss: PyTorch Variable containing (scalar) the loss for the discriminator.
     """
@@ -232,7 +232,7 @@ def generator_loss(logits_fake, dtype):
 
     Inputs:
     - logits_fake: PyTorch Variable of shape (N,) giving scores for the fake data.
-    
+
     Returns:
     - loss: PyTorch Variable containing the (scalar) loss for the generator.
     """
@@ -248,7 +248,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
               num_epochs=10):
     """
     Train a GAN!
-    
+
     Inputs:
     - D, G: PyTorch models for the discriminator and generator
     - D_solver, G_solver: torch.optim Optimizers to use for training the
@@ -274,7 +274,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
             logits_fake = D(fake_images.view(batch_size, 1, 28, 28))
 
             d_total_error = discriminator_loss(logits_real, logits_fake, dtype)
-            d_total_error.backward()        
+            d_total_error.backward()
             D_solver.step()
 
             G_solver.zero_grad()
@@ -300,21 +300,21 @@ def main():
 
     NUM_TRAIN = 50000
     NUM_VAL = 5000
-    
+
     NOISE_DIM = 96
     batch_size = 128
-    
+
     mnist_train = dset.MNIST('./data', train=True, download=True,
                                transform=T.ToTensor())
     loader_train = DataLoader(mnist_train, batch_size=batch_size,
                               sampler=ChunkSampler(NUM_TRAIN, 0))
-    
+
     mnist_val = dset.MNIST('./data', train=True, download=True,
                                transform=T.ToTensor())
     loader_val = DataLoader(mnist_val, batch_size=batch_size,
                             sampler=ChunkSampler(NUM_VAL, NUM_TRAIN))
-    
-    
+
+
     imgs = loader_train.__iter__().next()[0].view(
         batch_size, 784).numpy().squeeze()
     show_images(imgs)
@@ -322,14 +322,14 @@ def main():
     dtype = torch.FloatTensor
 #    dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
 
-    D_DC = build_discriminator(batch_size).type(dtype) 
+    D_DC = build_discriminator(batch_size).type(dtype)
     D_DC.apply(initialize_weights)
     G_DC = build_generator(batch_size, NOISE_DIM).type(dtype)
     G_DC.apply(initialize_weights)
-    
+
     D_DC_solver = get_optimizer(D_DC)
     G_DC_solver = get_optimizer(G_DC)
-    
+
     run_a_gan(D_DC, G_DC, D_DC_solver, G_DC_solver, discriminator_loss,
               generator_loss, loader_train, dtype, num_epochs=5)
 
