@@ -113,11 +113,11 @@ class SiameseNetwork(nn.Module):
         self.relu = nn.ReLU()
         self.bn2 = nn.BatchNorm2d(16)
         self.conv3 = nn.Conv2d(16,32,3,padding=1)
-        self.bn3 = nn.BatchNorm2d(8)
+        self.bn3 = nn.BatchNorm2d(32)
 
-        self.fc1 = (123,1024)
-        self.fc2 = (1024,512)
-        self.fc3 = (512,8)
+        self.fc1 = nn.Linear(32*12*12,1024)
+        self.fc2 = nn.Linear(1024,512)
+        self.fc3 = nn.Linear(512,8)
 
     def forward_once(self, x):
         #TODO: implement the forward pass to get features for input image
@@ -130,7 +130,11 @@ class SiameseNetwork(nn.Module):
         h7 = self.conv3(h6)
         h8 = self.maxpool(h7)
         h9 = self.bn3(self.relu(h8))
-        return h9
+        #print(h9.shape[0])
+        f1 = self.fc1(h9.view(h9.shape[0],-1))
+        f2 = self.fc2(self.relu(f1))
+        f3 = self.fc3(self.relu(f2))
+        return f3
 
 
 
@@ -154,8 +158,11 @@ class ContrastiveLoss(torch.nn.Module):
         #TODO: argument output1 is f(x1), output2 is f(x2)
         # calculate the contrasive loss and return it
         # Note that in this function we have batch of samples as input.
-        loss = (1 - y) * (output1 - output2).norm(dim=1).squeeze() + y * (torch.clamp((output1 - output2),min=0).norm(dim=1).squeeze()).pow(2)
-        return loss
+        #print(label.shape)
+        #print(output1.shape)
+        #print(output1.norm(p=2,dim=1).shape)
+        loss = (1 - label) * (output1 - output2).norm(p=2,dim=1) + label * (torch.clamp((self.margin - (output1 - output2)).norm(p=2,dim=1), min=0)).pow(2)
+        return loss.mean()
 
 
 def evaluate(dataiter, net, split, device):
