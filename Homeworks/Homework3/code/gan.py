@@ -317,15 +317,17 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
             g_error.backward()
             G_solver.step()
 
-            #if (iter_count % show_every == 0):
+            if (iter_count % show_every == 0):
             #if (iter_count == num_epochs):
-    print('Iter: {}, D: {:.4}, G:{:.4}'.format(
-        iter_count,d_total_error.data,g_error.data))
-    imgs_numpy = fake_images.data.cpu().numpy()
-    show_images(imgs_numpy[0:16])
-    plt.pause(1.0)
-    print()
-#iter_count += 1
+                print('Iter: {}, D: {:.4}, G:{:.4}'.format(
+                    iter_count,d_total_error.data,g_error.data))
+                imgs_numpy = fake_images.data.cpu().numpy()
+                show_images(imgs_numpy[0:16])
+                #plt.imshow()
+                #plt.hold()
+                plt.pause(30.0)
+                print()
+            iter_count += 1
 
 
 def main():

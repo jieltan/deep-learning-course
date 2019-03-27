@@ -175,9 +175,9 @@ def evaluate(dataiter, net, split, device):
             concatenated = torch.cat((x0,x1),0)
             output1,output2 = net(Variable(x0).to(device),Variable(x1).to(device))
             euclidean_distance = F.pairwise_distance(output1, output2)
-            imshow(torchvision.utils.make_grid(concatenated),'%s, dissimilarity:%.2f'%(split, euclidean_distance.item()))
-            plt.savefig('%s_%d_%d.png'%(split,i, j))
-            plt.close()
+            #imshow(torchvision.utils.make_grid(concatenated),'%s, dissimilarity:%.2f'%(split, euclidean_distance.item()))
+            #plt.savefig('%s_%d_%d.png'%(split,i, j))
+            #plt.close()
 
 
 if __name__ == "__main__":
@@ -227,3 +227,6 @@ if __name__ == "__main__":
     test_dataloader = DataLoader(siamese_dataset,num_workers=10,batch_size=1,shuffle=True)
     dataiter = iter(test_dataloader)
     evaluate(dataiter, net, 'test', device)
+    print("what")
+    plt.plot(loss_history)
+    plt.show()
