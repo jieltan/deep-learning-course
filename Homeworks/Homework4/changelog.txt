@@ -1,0 +1,4 @@
+04/02/2019
+* Added sub-part to question 2 (p2.2)
+* Added extra credit question (p5)
+* Changed inner summation bounds in 2.1 (sum goes from t=1 to T)
