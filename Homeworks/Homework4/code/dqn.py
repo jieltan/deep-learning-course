@@ -46,11 +46,18 @@ class DQN(nn.Module):
     def __init__(self):
         super(DQN, self).__init__()
     # TODO: design the architecture, fc-relu-fc might be good enough
+    self.fc1 = nn.Linear(4,128)
+    self.relu = nn.ReLU()
+    self.fc2 = nn.Linear(128,2)
 
     def forward(self, x):
     # Called with either one element to determine next action, or a batch
     # during optimization.
     # Given batch of states, predict the Q value for each action
+    h1 = self.fc1(x)
+    h2 = self.fc2(self.relu(h1))
+    return h2
+
 
 
 def select_action(state, policy_net, eps_end, eps_start, eps_decay, steps_done, device):
@@ -60,6 +67,10 @@ def select_action(state, policy_net, eps_end, eps_start, eps_decay, steps_done, 
     #TODO: epsilon-greedy action selection
     #with probability eps_threshold, take random action
     #with probability 1-eps_threshold, take the greedy action
+    steps_done += 1
+    if sample > eps_threshold:
+        return policy_net(state).argmax()
+    return torch.tensor([random.randint(0,1)],device=device,dtype=torch.long)
 
 
 
@@ -88,18 +99,22 @@ def optimize_model(policy_net, target_net, optimizer, memory, batch_size, gamma,
     # TODO: Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
     # for each batch state according to policy_net
-
+    state_action = policy_net(state_batch).gather(1,action_batch)
 
     # TODO: Compute V(s_{t+1}) for all next states.
     # Expected values of actions for non_final_next_states are computed based
     # on the "older" target_net; selecting their best reward with max(1)[0].
     # This is merged based on the mask, such that we'll have either the expected
     # state value or 0 in case the state was final.
-
+    next_state = torch.zeros(batch_size)
+    next_state[non_final_mask] = target_net(non_final_next_states).max(1)[0]
     # TODO: Compute the expected Q values
+    expected = (next_state * gamma) + reward_batch
+
 
     # TODO: Compute Huber loss. In practice, Huber loss might be better than L2 loss.
     # smooth_l1_loss in pytorch might be useful
+    loss = F.smooth_l1_loss(state_action, expected.unsqueeze(1));
 
     # Optimize the model
     optimizer.zero_grad()
@@ -159,16 +174,17 @@ def main():
         state = torch.tensor([state], device=device, dtype=torch.float32)
         for t in count():
             # Select and perform an action
-            action = select_action(state, policy_net, eps_end=EPS_END, eps_start=EPS_START, eps_decay=EPS_DECAY, steps_done=steps_done, device=device)            
+            action = select_action(state, policy_net, eps_end=EPS_END, eps_start=EPS_START, eps_decay=EPS_DECAY, steps_done=steps_done, device=device)
             next_state, reward, done, _ = env.step(action.item())
             steps_done += 1
             next_state = torch.tensor([next_state], device=device, dtype=torch.float32)
             reward = torch.tensor([reward], device=device)
             if done:
                 next_state=None
-    
+
             # TODO: Store the transition in memory
-        
+            memory.push(next_state)
+
             # Move to the next state
             state = next_state
 
