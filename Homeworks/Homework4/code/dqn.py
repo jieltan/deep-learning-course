@@ -46,17 +46,18 @@ class DQN(nn.Module):
     def __init__(self):
         super(DQN, self).__init__()
     # TODO: design the architecture, fc-relu-fc might be good enough
-    self.fc1 = nn.Linear(4,128)
-    self.relu = nn.ReLU()
-    self.fc2 = nn.Linear(128,2)
+        self.fc1 = nn.Linear(4,128)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(128,2)
 
     def forward(self, x):
     # Called with either one element to determine next action, or a batch
     # during optimization.
     # Given batch of states, predict the Q value for each action
-    h1 = self.fc1(x)
-    h2 = self.fc2(self.relu(h1))
-    return h2
+        h1 = self.fc1(x)
+        h2 = self.fc2(self.relu(h1))
+        #print(h2)
+        return h2
 
 
 
@@ -70,7 +71,7 @@ def select_action(state, policy_net, eps_end, eps_start, eps_decay, steps_done, 
     steps_done += 1
     if sample > eps_threshold:
         return policy_net(state).argmax()
-    return torch.tensor([random.randint(0,1)],device=device,dtype=torch.long)
+    return torch.tensor(random.randint(0,1),device=device,dtype=torch.long)
 
 
 
@@ -93,6 +94,7 @@ def optimize_model(policy_net, target_net, optimizer, memory, batch_size, gamma,
     non_final_next_states = torch.cat([s for s in batch.next_state
                                                 if s is not None])
     state_batch = torch.cat(batch.state)
+    #print(batch.action.shape)
     action_batch = torch.cat(batch.action)
     reward_batch = torch.cat(batch.reward)
 
@@ -183,7 +185,7 @@ def main():
                 next_state=None
 
             # TODO: Store the transition in memory
-            memory.push(next_state)
+            memory.push(state, action, next_state, reward)
 
             # Move to the next state
             state = next_state
