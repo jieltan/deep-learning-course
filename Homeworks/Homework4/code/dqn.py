@@ -70,8 +70,8 @@ def select_action(state, policy_net, eps_end, eps_start, eps_decay, steps_done, 
     #with probability 1-eps_threshold, take the greedy action
     steps_done += 1
     if sample > eps_threshold:
-        return policy_net(state).argmax()
-    return torch.tensor(random.randint(0,1),device=device,dtype=torch.long)
+        return policy_net(state).argmax().view(1,1)
+    return torch.tensor([[random.randrange(0,1)]],device=device,dtype=torch.long)
 
 
 
