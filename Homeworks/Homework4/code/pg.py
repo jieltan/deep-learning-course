@@ -20,6 +20,11 @@ class PolicyNet(nn.Module):
         ### Create layers for the network described in the ###
         ### homework writeup                               ###
         ######################################################
+        self.fc1 = nn.Linear(4,24)
+        self.fc2 = nn.Linear(24,36)
+        self.fc3 = nn.Linear(36,1)
+        self.relu = nn.ReLU()
+        self.sig = nn.Sigmoid()
 
         ######################################################
         ###               END OF YOUR CODE                 ###
@@ -32,6 +37,10 @@ class PolicyNet(nn.Module):
         ######################################################
         ### Forward through the network                    ###
         ######################################################
+        h1 = self.fc1(x)
+        h2 = self.fc2(self.relu(h1))
+        h3 = self.fc3(self.relu(h2))
+        return self.sig(h3)
 
         ######################################################
         ###               END OF YOUR CODE                 ###
@@ -137,7 +146,7 @@ def main():
                 ### step in the sampled trajectory and store them    #
                 ### in the reward_pool list                          #
                 ######################################################
-        
+
                 ######################################################
                 ###               END OF YOUR CODE                 ###
                 ######################################################
