@@ -36,16 +36,17 @@ class Policy(nn.Module):
         # actor
         self.fc1 = nn.Linear(4,128)
         self.fc_a = nn.Linear(128,2)
-        self.sm = nn.SoftMax(dim=-1)
+        self.sm = nn.SoftMax()
         self.fc_c = nn.Linear(128,1)
-        self.relu = nn.ReLU()
+        self.relu_a = nn.ReLU()
+        self.relu_c = nn.ReLU()
 
     def forward(self, x):
         ##### TODO ######
         ### Complete definition
-        h1 = self.relu(self.fc1(x))
-        a1 = self.fc_a(h1)
-        c1 = self.fc_c(h1)
+        h1 = self.fc1(x)
+        a1 = self.fc_a(self.relu_a(h1))
+        c1 = self.fc_c(self.relu_c(h1))
         a2 = self.sm(a1)
         return a1, c1
 
@@ -90,7 +91,25 @@ def compute_losses(episode):
 
     ####### TODO #######
     #### Compute the actor and critic losses
-    actor_loss, critic_loss = None, None
+    dis_reward = []
+    running_add = 0
+    for i reversed(range(len(episode))):
+        running_add = arg.gamma * running_add + episode[2][i]
+        dis_reward.insert(0, running_add)
+    dis_reward = torch.tensor(dis_reward)
+    dis_reward = (dis_reward - dis_reward.mean())/(dis_reward.std())
+    logprob = []
+    c_hist = []
+    actor_loss, critic_loss = torch.tensor(0.), torch.tensor(0.)
+    for i in range(len(episode)):
+        a, c = model(episode[0][i])
+        logprob.append(torch.log(a[episode[1][i]]))
+        c_hist.append(c)
+    for i range(len(episode)):
+        adv = dis_reward[i] - c_hist[i].item()
+        actor_loss = -1. * logprob * adv + actor_loss
+        critic_loss += adv.pow(2)
+
 
     return actor_loss, critic_loss
 
