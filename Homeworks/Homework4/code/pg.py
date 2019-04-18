@@ -23,7 +23,8 @@ class PolicyNet(nn.Module):
         self.fc1 = nn.Linear(4,24)
         self.fc2 = nn.Linear(24,36)
         self.fc3 = nn.Linear(36,1)
-        self.relu = nn.ReLU()
+        self.relu1 = nn.ReLU()
+        self.relu2 = nn.ReLU()
         self.sig = nn.Sigmoid()
 
         ######################################################
@@ -38,8 +39,8 @@ class PolicyNet(nn.Module):
         ### Forward through the network                    ###
         ######################################################
         h1 = self.fc1(x)
-        h2 = self.fc2(self.relu(h1))
-        h3 = self.fc3(self.relu(h2))
+        h2 = self.fc2(self.relu1(h1))
+        h3 = self.fc3(self.relu2(h2))
         return self.sig(h3)
 
         ######################################################
@@ -69,7 +70,7 @@ def simulate(env, policy_net, steps, state_pool, action_pool, reward_pool,
     state = env.reset()
     state = torch.from_numpy(state).float()
     state = Variable(state)
-    env.render(mode='rgb_array')
+    #env.render(mode='rgb_array')
 
     for t in count():
 
@@ -79,7 +80,9 @@ def simulate(env, policy_net, steps, state_pool, action_pool, reward_pool,
         ### Use policy_net to sample actions given the       #
         ### current state                                    #
         ######################################################
-        action = policy_net(state)
+        net = policy_net(state)
+        b = Bernoulli(net)
+        action = b.sample()
 
         ######################################################
         ###               END OF YOUR CODE                 ###
@@ -87,7 +90,7 @@ def simulate(env, policy_net, steps, state_pool, action_pool, reward_pool,
 
         action = action.data.numpy().astype(int)[0]
         next_state, reward, done, _ = env.step(action)
-        env.render(mode='rgb_array')
+        #env.render(mode='rgb_array')
 
         # To mark boundarys between episodes
         if done:
@@ -147,8 +150,8 @@ def main():
                 ### step in the sampled trajectory and store them    #
                 ### in the reward_pool list                          #
                 ######################################################
-                running_add = gamma * running_add + i
-                reward_pool.insert(0, running_add)
+                running_add = gamma * running_add + reward_pool[i]
+                reward_pool[i] = running_add
 
                 ######################################################
                 ###               END OF YOUR CODE                 ###
@@ -164,8 +167,8 @@ def main():
 
             # Gradient Desent
             optimizer.zero_grad()
-
-            #for i in range(steps):
+            loss = torch.tensor(0)
+            for i in range(steps):
 
                 ######################################################
                 ###              START OF YOUR CODE                ###
@@ -177,13 +180,19 @@ def main():
                 ### reward_pool list and perform backward() on the   #
                 ### computed objective for the optimier.step call    #
                 ######################################################
-                #loss =
+                #print(state_pool[i])
+                #print(action_pool[i])
+                net = policy_net(state_pool[i])
+                if (action_pool[i] == 0):
+                    net = 1 - net
+                logprob = torch.log(net)
+                loss = -1 * logprob * reward_pool[i]
+                loss.backward()
 
                 ######################################################
                 ###               END OF YOUR CODE                 ###
                 ######################################################
-            loss = torch.sum(torch.mul(state_pool,action_pool).mul(-1), -1)
-            loss.backward()
+            #loss.backward()
 
             optimizer.step()
 
@@ -195,3 +204,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    plt.pause(30)
