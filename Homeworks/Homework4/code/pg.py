@@ -147,6 +147,8 @@ def main():
                 ### step in the sampled trajectory and store them    #
                 ### in the reward_pool list                          #
                 ######################################################
+                running_add = gamma * running_add + i
+                reward_pool.insert(0, running_add)
 
                 ######################################################
                 ###               END OF YOUR CODE                 ###
@@ -163,7 +165,7 @@ def main():
             # Gradient Desent
             optimizer.zero_grad()
 
-            for i in range(steps):
+            #for i in range(steps):
 
                 ######################################################
                 ###              START OF YOUR CODE                ###
@@ -175,11 +177,13 @@ def main():
                 ### reward_pool list and perform backward() on the   #
                 ### computed objective for the optimier.step call    #
                 ######################################################
+                #loss =
 
                 ######################################################
                 ###               END OF YOUR CODE                 ###
                 ######################################################
-
+            loss = torch.sum(torch.mul(state_pool,action_pool).mul(-1), -1)
+            loss.backward()
 
             optimizer.step()
 
