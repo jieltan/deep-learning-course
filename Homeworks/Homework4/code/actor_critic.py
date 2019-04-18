@@ -36,13 +36,18 @@ class Policy(nn.Module):
         # actor
         self.fc1 = nn.Linear(4,128)
         self.fc_a = nn.Linear(128,2)
-        self.sm = nn.SoftMax()
+        self.sm = nn.SoftMax(dim=-1)
         self.fc_c = nn.Linear(128,1)
         self.relu = nn.ReLU()
 
     def forward(self, x):
         ##### TODO ######
         ### Complete definition
+        h1 = self.relu(self.fc1(x))
+        a1 = self.fc_a(h1)
+        c1 = self.fc_c(h1)
+        a2 = self.sm(a1)
+        return a1, c1
 
 model = Policy()
 optimizer = optim.Adam(model.parameters(), lr=3e-2)

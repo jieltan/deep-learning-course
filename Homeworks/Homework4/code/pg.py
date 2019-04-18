@@ -79,6 +79,7 @@ def simulate(env, policy_net, steps, state_pool, action_pool, reward_pool,
         ### Use policy_net to sample actions given the       #
         ### current state                                    #
         ######################################################
+        action = policy_net(state)
 
         ######################################################
         ###               END OF YOUR CODE                 ###
