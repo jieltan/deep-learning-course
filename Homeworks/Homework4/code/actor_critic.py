@@ -36,19 +36,18 @@ class Policy(nn.Module):
         # actor
         self.fc1 = nn.Linear(4,128)
         self.fc_a = nn.Linear(128,2)
-        self.sm = nn.SoftMax()
+        self.sm = nn.Softmax()
         self.fc_c = nn.Linear(128,1)
-        self.relu_a = nn.ReLU()
-        self.relu_c = nn.ReLU()
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         ##### TODO ######
         ### Complete definition
         h1 = self.fc1(x)
-        a1 = self.fc_a(self.relu_a(h1))
-        c1 = self.fc_c(self.relu_c(h1))
+        a1 = self.fc_a(self.relu(h1))
+        c1 = self.fc_c(self.relu(h1))
         a2 = self.sm(a1)
-        return a1, c1
+        return a2, c1
 
 model = Policy()
 optimizer = optim.Adam(model.parameters(), lr=3e-2)
@@ -93,8 +92,8 @@ def compute_losses(episode):
     #### Compute the actor and critic losses
     dis_reward = []
     running_add = 0
-    for i reversed(range(len(episode))):
-        running_add = arg.gamma * running_add + episode[2][i]
+    for i in reversed(range(len(episode))):
+        running_add = args.gamma * running_add + episode[i][2]
         dis_reward.insert(0, running_add)
     dis_reward = torch.tensor(dis_reward)
     dis_reward = (dis_reward - dis_reward.mean())/(dis_reward.std())
@@ -102,13 +101,14 @@ def compute_losses(episode):
     c_hist = []
     actor_loss, critic_loss = torch.tensor(0.), torch.tensor(0.)
     for i in range(len(episode)):
-        a, c = model(episode[0][i])
-        logprob.append(torch.log(a[episode[1][i]]))
+        state = torch.from_numpy(episode[i][0]).float()
+        a, c = model(state)
+        logprob.append(torch.log(a[episode[i][1]]))
         c_hist.append(c)
-    for i range(len(episode)):
-        adv = dis_reward[i] - c_hist[i].item()
-        actor_loss = -1. * logprob * adv + actor_loss
-        critic_loss += adv.pow(2)
+    for i in range(len(episode)):
+        adv = dis_reward[i] - c_hist[i]
+        actor_loss = -1. * logprob[i] * adv + actor_loss
+        critic_loss = adv.pow(2) + critic_loss
 
 
     return actor_loss, critic_loss
